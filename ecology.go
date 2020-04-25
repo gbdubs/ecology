@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"flag"
-	"github.com/gbdubs/ecology/list_project"
 	"github.com/gbdubs/ecology/create_project"
 	"github.com/gbdubs/ecology/ecology_manifest"
+	"github.com/gbdubs/ecology/list_project"
 	"github.com/gbdubs/ecology/output"
 	"os"
 )
@@ -44,7 +44,7 @@ func main() {
 	platformDefaultValue := ""
 	platformHelpText := "The name of the platform that should be used for this command, AWS or GCP."
 	createProjectPlatformPtr := createProjectCommand.String(platformFlagKey, platformDefaultValue, platformHelpText)
-	
+
 	verboseFlagKey := "verbose"
 	verboseDefaultValue := false
 	verboseHelpText := "Whether or not to be verbose in the resulting output."
@@ -68,8 +68,8 @@ func main() {
 	case "list_project":
 		listProjectCommand.Parse(os.Args[2:])
 		list_project.ListProjectCommand{
-		  EcologyManifest: ecologyManifest,
-		  Verbose: *listProjectVerbosePtr,
+			EcologyManifest: ecologyManifest,
+			Verbose:         *listProjectVerbosePtr,
 		}.Execute(o)
 	default:
 		o.Error(illegalCommandNameError)

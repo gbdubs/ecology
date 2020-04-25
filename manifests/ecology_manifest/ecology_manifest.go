@@ -72,7 +72,7 @@ func (ecologyManifest EcologyManifest) Save(o *output.Output) (err error) {
 	o.Info("Writing Ecology Manifest to %s...", ecologyManifestFilePath).Indent()
 	file, err := json.MarshalIndent(ecologyManifest, "", "  ")
 	if err == nil {
-	  err = ioutil.WriteFile(ecologyManifestFilePath, file, 0777)
+		err = ioutil.WriteFile(ecologyManifestFilePath, file, 0777)
 	}
 	if err != nil {
 		o.Error(err)

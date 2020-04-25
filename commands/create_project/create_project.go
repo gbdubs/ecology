@@ -35,7 +35,7 @@ func (cp CreateProjectCommand) Execute(o *output.Output) (err error) {
 
 	manifest := project_manifest.ProjectManifest{
 		ProjectManifestPath: cp.ProjectManifestPath,
-		ProjectName:             cp.ProjectSimpleName,
+		ProjectName:         cp.ProjectSimpleName,
 	}
 	err = manifest.Save(o)
 	o.Dedent().Done()
@@ -71,7 +71,7 @@ func (cp CreateProjectCommand) validate() (err error) {
 	if !match {
 		return errors.New("--project_path can only contain alphanumeric characters or slashes")
 	}
-	
+
 	if cp.LambdaName == "" {
 		return errors.New("create_project requires --lambda_name")
 	}

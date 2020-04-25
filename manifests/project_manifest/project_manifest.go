@@ -36,7 +36,7 @@ func (projectManifest *ProjectManifest) Save(o *output.Output) (err error) {
 		err = os.MkdirAll(parentDir, 0777)
 	}
 	if err == nil {
-	  err = ioutil.WriteFile(filePath, contents, 0777)
+		err = ioutil.WriteFile(filePath, contents, 0777)
 	}
 	if err != nil {
 		o.Error(err)
@@ -46,16 +46,16 @@ func (projectManifest *ProjectManifest) Save(o *output.Output) (err error) {
 }
 
 func (pm *ProjectManifest) PushToPlatform(o *output.Output) (err error) {
-  o.Info("Pushing Project %s to Platform", pm.ProjectName).Indent()
-  o.Info("Pushing Lambdas")
-  for _, lm := range pm.LambdaManifest {
-    err = lm.PushToPlatform(o)
-    if err != nil {
-      o.Error(err)
-      return err
-    }
-  }
-  o.Dedent().Done()
-  o.Dedent().Done()
-  return
+	o.Info("Pushing Project %s to Platform", pm.ProjectName).Indent()
+	o.Info("Pushing Lambdas")
+	for _, lm := range pm.LambdaManifest {
+		err = lm.PushToPlatform(o)
+		if err != nil {
+			o.Error(err)
+			return err
+		}
+	}
+	o.Dedent().Done()
+	o.Dedent().Done()
+	return
 }

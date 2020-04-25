@@ -12,7 +12,7 @@ func Test_SaveOnUndefinedManifestPathFails(t *testing.T) {
 		panic(err)
 	}
 	defer os.RemoveAll(dirForTesting)
-	
+
 	projectName := "NewProjectForTest"
 	projectManifest := ProjectManifest{
 		ProjectName: projectName,
@@ -34,7 +34,7 @@ func Test_SaveAndGetWorkTogetherToPersistProjectManifests(t *testing.T) {
 	defer os.RemoveAll(dirForTesting)
 	projectName := "NewProjectForTest"
 	projectManifestPath := dirForTesting + "/a/b/ProjectManifestPath/ecology.ecology"
-	
+
 	projectManifest := ProjectManifest{
 		ProjectName:         projectName,
 		ProjectManifestPath: projectManifestPath,
@@ -50,9 +50,9 @@ func Test_SaveAndGetWorkTogetherToPersistProjectManifests(t *testing.T) {
 		t.Errorf("ERROR: Expected no error but was %v", actualError)
 	}
 	if actualPM.ProjectManifestPath != projectManifestPath {
-		t.Errorf("ERROR: Strings don't match': Actual [%s] Expected [%s]", actualPM.ProjectManifestPath,  projectManifestPath)
+		t.Errorf("ERROR: Strings don't match': Actual [%s] Expected [%s]", actualPM.ProjectManifestPath, projectManifestPath)
 	}
 	if actualPM.ProjectName != projectName {
-		t.Errorf("ERROR: Strings don't match': Actual [%s] Expected [%s]", actualPM.ProjectName,  projectName)
+		t.Errorf("ERROR: Strings don't match': Actual [%s] Expected [%s]", actualPM.ProjectName, projectName)
 	}
 }

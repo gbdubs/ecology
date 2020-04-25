@@ -8,10 +8,10 @@ import "github.com/gbdubs/ecology/project_manifest"
 import "github.com/gbdubs/ecology/output"
 
 func Test_applyConstantTransformations_CreatesProjectManifestPathFromProjectPath(t *testing.T) {
-	createProjectCommand := CreateProjectCommand {
-	  EcologyManifest: ecology_manifest.EcologyManifest {
-	    EcologyProjectsDirectoryPath: "/BD",
-	  },
+	createProjectCommand := CreateProjectCommand{
+		EcologyManifest: ecology_manifest.EcologyManifest{
+			EcologyProjectsDirectoryPath: "/BD",
+		},
 		ProjectPath: "a/b/c/d/project",
 	}
 
@@ -21,10 +21,10 @@ func Test_applyConstantTransformations_CreatesProjectManifestPathFromProjectPath
 }
 
 func Test_applyConstantTransformations_CreatesProjectManifestPathFromProjectName(t *testing.T) {
-	createProjectCommand := CreateProjectCommand {
-	  EcologyManifest: ecology_manifest.EcologyManifest {
-	    EcologyProjectsDirectoryPath: "/BD",
-	  },
+	createProjectCommand := CreateProjectCommand{
+		EcologyManifest: ecology_manifest.EcologyManifest{
+			EcologyProjectsDirectoryPath: "/BD",
+		},
 		ProjectSimpleName: "SimpleProjectName",
 	}
 
@@ -34,9 +34,9 @@ func Test_applyConstantTransformations_CreatesProjectManifestPathFromProjectName
 }
 
 func Test_applyConstantTransformations_InfersSimpleProjectNameIfUnspecified(t *testing.T) {
-	createProjectCommand := CreateProjectCommand {
-	  EcologyManifest: ecology_manifest.EcologyManifest {},
-		ProjectPath: "a/b/c/d/ProjectName",
+	createProjectCommand := CreateProjectCommand{
+		EcologyManifest: ecology_manifest.EcologyManifest{},
+		ProjectPath:     "a/b/c/d/ProjectName",
 	}
 
 	modifiedCreateProjectCommand := applyConstantTransformations(createProjectCommand)
@@ -45,8 +45,8 @@ func Test_applyConstantTransformations_InfersSimpleProjectNameIfUnspecified(t *t
 }
 
 func Test_applyConstantTransformations_InfersProjectPathIfUnspecified(t *testing.T) {
-	createProjectCommand := CreateProjectCommand {
-	  EcologyManifest: ecology_manifest.EcologyManifest {},
+	createProjectCommand := CreateProjectCommand{
+		EcologyManifest:   ecology_manifest.EcologyManifest{},
 		ProjectSimpleName: "ProjectName",
 	}
 
@@ -56,11 +56,11 @@ func Test_applyConstantTransformations_InfersProjectPathIfUnspecified(t *testing
 }
 
 func Test_validate_ValidArguments(t *testing.T) {
-	createProjectCommand := CreateProjectCommand {
-	  EcologyManifest: ecology_manifest.EcologyManifest {
-	    EcologyProjectsDirectoryPath: "/BD",
-	    ProjectManifestPaths: []string {"/BD/P1/ecology.ecology", "/BD/P2/ecology.ecology"},
-	  },
+	createProjectCommand := CreateProjectCommand{
+		EcologyManifest: ecology_manifest.EcologyManifest{
+			EcologyProjectsDirectoryPath: "/BD",
+			ProjectManifestPaths:         []string{"/BD/P1/ecology.ecology", "/BD/P2/ecology.ecology"},
+		},
 		ProjectPath: "Hello/World/P3",
 		LambdaName:  "ValidLambdaName",
 		Platform:    "AWS",
@@ -129,11 +129,10 @@ func Test_validate_ProjectPath_MustNotContainSymbols(t *testing.T) {
 	assertErrorsEqual(t, actualError, "--project_path can only contain alphanumeric characters or slashes")
 }
 
-
 func Test_validate_LambdaName_MustBeNonEmpty(t *testing.T) {
 	createProjectCommand := CreateProjectCommand{
 		ProjectSimpleName: "HelloWorld",
-		LambdaName:  "",
+		LambdaName:        "",
 	}
 
 	actualError := createProjectCommand.validate()
@@ -144,7 +143,7 @@ func Test_validate_LambdaName_MustBeNonEmpty(t *testing.T) {
 func Testvalidate_LambdaName_MustNotContainSpaces(t *testing.T) {
 	createProjectCommand := CreateProjectCommand{
 		ProjectSimpleName: "HelloWorld",
-		LambdaName:  "Hello World",
+		LambdaName:        "Hello World",
 	}
 
 	actualError := createProjectCommand.validate()
@@ -155,7 +154,7 @@ func Testvalidate_LambdaName_MustNotContainSpaces(t *testing.T) {
 func Test_validate_LambdaName_MustNotContainSymbols(t *testing.T) {
 	createProjectCommand := CreateProjectCommand{
 		ProjectSimpleName: "HelloWorld",
-		LambdaName:  "HelloWorld!",
+		LambdaName:        "HelloWorld!",
 	}
 
 	actualError := createProjectCommand.validate()
@@ -166,8 +165,8 @@ func Test_validate_LambdaName_MustNotContainSymbols(t *testing.T) {
 func Test_validate_Platform_MustBeOnEnumeratedList(t *testing.T) {
 	createProjectCommand := CreateProjectCommand{
 		ProjectSimpleName: "HelloWorld",
-		LambdaName:  "HelloWorld",
-		Platform:    "ABC",
+		LambdaName:        "HelloWorld",
+		Platform:          "ABC",
 	}
 
 	actualError := createProjectCommand.validate()
@@ -178,8 +177,8 @@ func Test_validate_Platform_MustBeOnEnumeratedList(t *testing.T) {
 func Test_validate_Platform_MustBeSupportedOnEnumeratedList(t *testing.T) {
 	createProjectCommand := CreateProjectCommand{
 		ProjectSimpleName: "HelloWorld",
-		LambdaName:  "HelloWorld",
-		Platform:    "GCP",
+		LambdaName:        "HelloWorld",
+		Platform:          "GCP",
 	}
 
 	actualError := createProjectCommand.validate()
@@ -188,15 +187,15 @@ func Test_validate_Platform_MustBeSupportedOnEnumeratedList(t *testing.T) {
 }
 
 func Test_validate_DoesntAllowCreationOfDuplicateProjects(t *testing.T) {
-	createProjectCommand := CreateProjectCommand {
-	  EcologyManifest: ecology_manifest.EcologyManifest {
-	    EcologyProjectsDirectoryPath: "/BD",
-	    ProjectManifestPaths: []string {"/BD/P1/ecology.ecology", "/BD/P2/ecology.ecology"},
-	  },
-		ProjectPath: "P1",
+	createProjectCommand := CreateProjectCommand{
+		EcologyManifest: ecology_manifest.EcologyManifest{
+			EcologyProjectsDirectoryPath: "/BD",
+			ProjectManifestPaths:         []string{"/BD/P1/ecology.ecology", "/BD/P2/ecology.ecology"},
+		},
+		ProjectPath:         "P1",
 		ProjectManifestPath: "/BD/P1/ecology.ecology",
-		LambdaName:  "ValidLambdaName",
-		Platform:    "AWS",
+		LambdaName:          "ValidLambdaName",
+		Platform:            "AWS",
 	}
 
 	actualError := createProjectCommand.validate()
@@ -205,37 +204,39 @@ func Test_validate_DoesntAllowCreationOfDuplicateProjects(t *testing.T) {
 }
 
 func Test_Execute_CreatesProjectManifest(t *testing.T) {
-  o := output.NewForTesting()
-  dir, err := ioutil.TempDir("", "")
-  if err != nil {
-    panic(err)
-  }
-  defer os.RemoveAll(dir)
-  projectName := "NewProjectForTest"
-  createProjectCommand := CreateProjectCommand {
-	  EcologyManifest: ecology_manifest.EcologyManifest {
-	    EcologyProjectsDirectoryPath: dir,
-	  },
-		ProjectSimpleName: projectName,
-		LambdaName:  "ValidLambdaName",
-		Platform:    "AWS",
+	o := output.NewForTesting()
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		panic(err)
 	}
-  err = createProjectCommand.Execute(o)
-  if err != nil { panic (err) }
-  
-  expectedProjectManifestPath := dir + "/"+projectName+"/ecology.ecology"
-  actualPM, err := project_manifest.GetProjectManifest(expectedProjectManifestPath, o)
-  if err != nil {
-    panic(err)
-  }
-  assertStringsEqual(t, actualPM.ProjectManifestPath, expectedProjectManifestPath)
-  assertStringsEqual(t, actualPM.ProjectName, projectName)
+	defer os.RemoveAll(dir)
+	projectName := "NewProjectForTest"
+	createProjectCommand := CreateProjectCommand{
+		EcologyManifest: ecology_manifest.EcologyManifest{
+			EcologyProjectsDirectoryPath: dir,
+		},
+		ProjectSimpleName: projectName,
+		LambdaName:        "ValidLambdaName",
+		Platform:          "AWS",
+	}
+	err = createProjectCommand.Execute(o)
+	if err != nil {
+		panic(err)
+	}
+
+	expectedProjectManifestPath := dir + "/" + projectName + "/ecology.ecology"
+	actualPM, err := project_manifest.GetProjectManifest(expectedProjectManifestPath, o)
+	if err != nil {
+		panic(err)
+	}
+	assertStringsEqual(t, actualPM.ProjectManifestPath, expectedProjectManifestPath)
+	assertStringsEqual(t, actualPM.ProjectName, projectName)
 }
 
 func assertStringsEqual(t *testing.T, actual string, expected string) {
-  if actual != expected {
+	if actual != expected {
 		t.Errorf("ERROR: Strings don't match': Actual [%s] Expected [%s]", actual, expected)
-  }
+	}
 }
 
 func assertErrorsEqual(t *testing.T, actualError error, expectedErrorMessage string) {

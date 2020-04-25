@@ -7,13 +7,13 @@ import (
 
 type Output struct {
 	indentation int
-	testOnly bool
+	testOnly    bool
 }
 
 func New() *Output {
 	output := Output{
 		indentation: 0,
-		testOnly: false,
+		testOnly:    false,
 	}
 	return &output
 }
@@ -21,7 +21,7 @@ func New() *Output {
 func NewForTesting() *Output {
 	output := Output{
 		indentation: 0,
-		testOnly: true,
+		testOnly:    true,
 	}
 	return &output
 }
@@ -41,22 +41,22 @@ func (o *Output) Error(err error) {
 }
 
 func (o *Output) Failure(format string, a ...interface{}) *Output {
-  if !o.testOnly {
-    color.Red(o.indentFmt(format, a...))
-  }
-  return o
+	if !o.testOnly {
+		color.Red(o.indentFmt(format, a...))
+	}
+	return o
 }
 
 func (o *Output) Warning(format string, a ...interface{}) *Output {
 	if !o.testOnly {
-	  color.Yellow(o.indentFmt(format, a...))
+		color.Yellow(o.indentFmt(format, a...))
 	}
 	return o
 }
 
 func (o *Output) Info(format string, a ...interface{}) *Output {
-  if !o.testOnly {
-	  color.Cyan(o.indentFmt(format, a...))
+	if !o.testOnly {
+		color.Cyan(o.indentFmt(format, a...))
 	}
 	return o
 }
@@ -66,14 +66,14 @@ func (o *Output) Done() *Output {
 }
 
 func (o *Output) Success(format string, a ...interface{}) *Output {
-  if !o.testOnly {
-	  color.Green(o.indentFmt(format, a...))
+	if !o.testOnly {
+		color.Green(o.indentFmt(format, a...))
 	}
 	return o
 }
 
 func (o *Output) indentFmt(format string, a ...interface{}) string {
-  indent := ""
+	indent := ""
 	for i := 0; i < o.indentation; i++ {
 		indent = indent + "  "
 	}
