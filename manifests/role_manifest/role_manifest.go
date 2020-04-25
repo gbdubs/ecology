@@ -4,7 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/gbdubs/ecology/output"
+	"github.com/gbdubs/ecology/util/output"
 )
 
 type RoleManifest struct {
@@ -35,7 +35,7 @@ func (rm *RoleManifest) PushToPlatform(o *output.Output) (err error) {
 	getRoleRequest := &iam.GetRoleInput{
 		RoleName: aws.String(rm.RoleName),
 	}
-	result, err := svc.GetRole(getRoleRequest)
+	_, err = svc.GetRole(getRoleRequest)
 	if err == nil {
 		o.Info("Role already exists.").Dedent().Done()
 		rm.ExistsOnPlatform = true

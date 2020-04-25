@@ -1,8 +1,8 @@
 package list_project
 
 import (
-	"github.com/gbdubs/ecology/ecology_manifest"
-	"github.com/gbdubs/ecology/output"
+	"github.com/gbdubs/ecology/manifests/ecology_manifest"
+	"github.com/gbdubs/ecology/util/output"
 	"strings"
 )
 

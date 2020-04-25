@@ -3,9 +3,9 @@ package create_project
 import (
 	"encoding/json"
 	"errors"
-	"github.com/gbdubs/ecology/ecology_manifest"
-	"github.com/gbdubs/ecology/output"
-	"github.com/gbdubs/ecology/project_manifest"
+	"github.com/gbdubs/ecology/manifests/ecology_manifest"
+	"github.com/gbdubs/ecology/manifests/project_manifest"
+	"github.com/gbdubs/ecology/util/output"
 	"regexp"
 	"strings"
 )
@@ -15,8 +15,8 @@ type CreateProjectCommand struct {
 	ProjectPath         string
 	ProjectSimpleName   string
 	ProjectManifestPath string
-	LambdaName          string
 	Platform            string
+	Region              string
 }
 
 func (cp CreateProjectCommand) Execute(o *output.Output) (err error) {
@@ -70,14 +70,6 @@ func (cp CreateProjectCommand) validate() (err error) {
 	match, _ = regexp.MatchString(alphanumericWithSlashesRegex, cp.ProjectPath)
 	if !match {
 		return errors.New("--project_path can only contain alphanumeric characters or slashes")
-	}
-
-	if cp.LambdaName == "" {
-		return errors.New("create_project requires --lambda_name")
-	}
-	match, _ = regexp.MatchString(alphanumericRegex, cp.LambdaName)
-	if !match {
-		return errors.New("--lambda_name can only contain alphanumeric characters")
 	}
 
 	_, isEnumeratedPlatform := platforms[cp.Platform]

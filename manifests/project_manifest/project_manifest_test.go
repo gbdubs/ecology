@@ -3,7 +3,7 @@ package project_manifest
 import "os"
 import "io/ioutil"
 import "testing"
-import "github.com/gbdubs/ecology/output"
+import "github.com/gbdubs/ecology/util/output"
 
 func Test_SaveOnUndefinedManifestPathFails(t *testing.T) {
 	o := output.NewForTesting()

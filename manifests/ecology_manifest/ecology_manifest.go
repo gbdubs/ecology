@@ -2,7 +2,7 @@ package ecology_manifest
 
 import (
 	"encoding/json"
-	"github.com/gbdubs/ecology/output"
+	"github.com/gbdubs/ecology/util/output"
 	"io/ioutil"
 	"os"
 	"path/filepath"

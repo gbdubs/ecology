@@ -2,7 +2,8 @@ package project_manifest
 
 import (
 	"encoding/json"
-	"github.com/gbdubs/ecology/output"
+	"github.com/gbdubs/ecology/manifests/lambda_manifest"
+	"github.com/gbdubs/ecology/util/output"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -48,7 +49,7 @@ func (projectManifest *ProjectManifest) Save(o *output.Output) (err error) {
 func (pm *ProjectManifest) PushToPlatform(o *output.Output) (err error) {
 	o.Info("Pushing Project %s to Platform", pm.ProjectName).Indent()
 	o.Info("Pushing Lambdas")
-	for _, lm := range pm.LambdaManifest {
+	for _, lm := range pm.LambdaManifests {
 		err = lm.PushToPlatform(o)
 		if err != nil {
 			o.Error(err)

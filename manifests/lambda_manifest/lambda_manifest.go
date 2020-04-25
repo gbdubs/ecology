@@ -1,4 +1,4 @@
-package main
+package lambda_manifest
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/gbdubs/ecology/file_hash"
 	"github.com/gbdubs/ecology/manifests/role_manifest"
-	"github.com/gbdubs/ecology/output"
+	"github.com/gbdubs/ecology/util/file_hash"
+	"github.com/gbdubs/ecology/util/output"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -26,16 +26,6 @@ type LambdaManifest struct {
 	Region                   string
 	ExistsOnPlatform         bool
 	ExecutorRoleManifest     role_manifest.RoleManifest
-}
-
-func main() {
-	projectName := "JustPlayingAround"
-	projectDir := "/Users/gradyward/go/src/" + projectName
-	o := output.New()
-	lm, _ := New(projectDir, projectName, "FirstLambda3", "us-west-2", o)
-	lm.WriteInitialFile(o)
-	lm.PushToPlatform(o)
-	lm.PushToPlatform(o)
 }
 
 func New(projectDir string, projectName string, lambdaName string, region string, o *output.Output) (lm *LambdaManifest, err error) {
