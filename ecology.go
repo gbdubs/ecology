@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"github.com/gbdubs/ecology/list_project"
 	"github.com/gbdubs/ecology/create_project"
 	"github.com/gbdubs/ecology/ecology_manifest"
 	"github.com/gbdubs/ecology/output"
@@ -21,6 +22,7 @@ func main() {
 
 	// Subcommands
 	createProjectCommand := flag.NewFlagSet("create_project", flag.ExitOnError)
+	listProjectCommand := flag.NewFlagSet("list_project", flag.ExitOnError)
 
 	// Common Flag Arguments
 	projectPathFlagKey := "project_path"
@@ -42,8 +44,13 @@ func main() {
 	platformDefaultValue := ""
 	platformHelpText := "The name of the platform that should be used for this command, AWS or GCP."
 	createProjectPlatformPtr := createProjectCommand.String(platformFlagKey, platformDefaultValue, platformHelpText)
+	
+	verboseFlagKey := "verbose"
+	verboseDefaultValue := false
+	verboseHelpText := "Whether or not to be verbose in the resulting output."
+	listProjectVerbosePtr := listProjectCommand.Bool(verboseFlagKey, verboseDefaultValue, verboseHelpText)
 
-	illegalCommandNameError := errors.New("Invalid command. Implemented Commands:\n create_project")
+	illegalCommandNameError := errors.New("Invalid command. Implemented Commands:\n  create_project\n  list_project")
 	if len(os.Args) < 2 {
 		o.Error(illegalCommandNameError)
 	}
@@ -57,6 +64,12 @@ func main() {
 			ProjectPath:       *createProjectProjectPathPtr,
 			LambdaName:        *createProjectLambdaNamePtr,
 			Platform:          *createProjectPlatformPtr,
+		}.Execute(o)
+	case "list_project":
+		listProjectCommand.Parse(os.Args[2:])
+		list_project.ListProjectCommand{
+		  EcologyManifest: ecologyManifest,
+		  Verbose: *listProjectVerbosePtr,
 		}.Execute(o)
 	default:
 		o.Error(illegalCommandNameError)
