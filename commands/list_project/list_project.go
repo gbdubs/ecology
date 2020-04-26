@@ -3,6 +3,8 @@ package list_project
 import (
 	"github.com/gbdubs/ecology/manifests/ecology_manifest"
 	"github.com/gbdubs/ecology/util/output"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -11,9 +13,14 @@ type ListProjectCommand struct {
 	Verbose         bool
 }
 
-func (lpc ListProjectCommand) Execute(o *output.Output) (err error) {
+func (lpc ListProjectCommand) Execute(o *output.Output) error {
+	pms, err := listAllEcologyManifestsInDirectory(lpc.EcologyManifest.EcologyProjectsDirectoryPath)
+	if err != nil {
+		o.Error(err)
+		return err
+	}
 	o.Info("Available Projects:").Indent()
-	for _, manifestPath := range lpc.EcologyManifest.ProjectManifestPaths {
+	for _, manifestPath := range pms {
 		if lpc.Verbose {
 			o.Success(manifestPath)
 		} else {
@@ -23,4 +30,18 @@ func (lpc ListProjectCommand) Execute(o *output.Output) (err error) {
 	}
 	o.Dedent().Done()
 	return nil
+}
+
+func listAllEcologyManifestsInDirectory(root string) (files []string, err error) {
+	err = filepath.Walk(root,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if filepath.Ext(path) == ".ecology" {
+				files = append(files, path)
+			}
+			return nil
+		})
+	return files, err
 }

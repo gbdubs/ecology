@@ -87,7 +87,7 @@ func (lm *LambdaManifest) packageToDeploy(o *output.Output) (err error) {
 	o.Dedent().Done()
 
 	o.Info("LambdaManifest - packageToDeploy - Zip").Indent()
-	zipArgs := strings.Split(fmt.Sprintf("-j %s/%s.zip %s/%s", lm.CodeInfo.ZippedPath, lm.CodeInfo.BuiltPath), " ")
+	zipArgs := strings.Split(fmt.Sprintf("-j %s %s", lm.CodeInfo.ZippedPath, lm.CodeInfo.BuiltPath), " ")
 	ctx, cancelZip := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelZip()
 	if result, err := exec.CommandContext(ctx, "zip", zipArgs...).CombinedOutput(); err != nil {
@@ -110,12 +110,12 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 	var currentCodeHash string
 	if lm.DeployInfo.LastDeployedHash != "" {
 		o.Info("LambdaManifest - PushToPlatform - Is Push Necessary?").Indent()
-		currentCodeHash, err = file_hash.ComputeFileHash(lm.CodeInfo.CodePath, o)
-		o.Info("Old Hash: %s", lm.DeployInfo.LastDeployedHash)
-		o.Info("Current Hash: %s", currentCodeHash)
+		currentCodeHash, err = file_hash.ComputeFileHash(lm.CodeInfo.CodePath)
 		if err != nil {
 			return err
 		}
+		o.Info("Old Hash: %s", lm.DeployInfo.LastDeployedHash)
+		o.Info("Current Hash: %s", currentCodeHash)
 		if currentCodeHash == lm.DeployInfo.LastDeployedHash {
 			o.Dedent().Success("Code hasn't changed since last push, no push needed.").Dedent().Done()
 			return nil
@@ -123,6 +123,7 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 		o.Dedent().Warning("Code has changed since last push.")
 	} else {
 		o.Info("LambdaManifest - PushToPlatform - First Lambda Push")
+		currentCodeHash, err = file_hash.ComputeFileHash(lm.CodeInfo.CodePath)
 	}
 
 	err = lm.packageToDeploy(o)
@@ -181,6 +182,7 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 	}
 	lm.DeployInfo.LastDeployedHash = currentCodeHash
 	lm.DeployInfo.Arn = arn
+	o.Dedent().Done()
 	return nil
 }
 
@@ -207,8 +209,7 @@ func (lm *LambdaManifest) DeleteFromPlatform(o *output.Output) (err error) {
 	return nil
 }
 
-const initialLambdaFileContents = `
-package main
+const initialLambdaFileContents = `package main
 
 import (
   "context"

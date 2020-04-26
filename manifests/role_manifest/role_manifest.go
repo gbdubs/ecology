@@ -31,20 +31,20 @@ func (rm *RoleManifest) PushToPlatform(o *output.Output) (err error) {
 		return nil
 	}
 	svc := iam.New(session.New())
-	o.Info("Checking to see if Role %s already exists...").Indent()
+	o.Info("Checking to see if Role %s already exists...", rm.RoleName).Indent()
 	getRoleRequest := &iam.GetRoleInput{
 		RoleName: aws.String(rm.RoleName),
 	}
 	_, err = svc.GetRole(getRoleRequest)
 	if err == nil {
-		o.Info("Role already exists.").Dedent().Done()
+		o.Info("Role already exists.").Dedent().Done().Dedent().Done()
 		rm.ExistsOnPlatform = true
 		return
 	} else {
-		o.Warning("Role does not exist.")
+		o.Warning("Role does not exist.").Dedent()
 	}
 
-	o.Info("Creating Role %s on Platform", rm.RoleName)
+	o.Info("Creating Role %s on Platform", rm.RoleName).Indent()
 	createRoleRequest := &iam.CreateRoleInput{
 		AssumeRolePolicyDocument: aws.String(allowAmazonToRunLambdaPolicy),
 		Path:                     aws.String("/"),
@@ -60,7 +60,7 @@ func (rm *RoleManifest) PushToPlatform(o *output.Output) (err error) {
 	rm.ExistsOnPlatform = true
 	o.Info("Role ARN = %s", rm.Arn)
 	o.Info("Role Id = %s", rm.RoleId)
-	o.Dedent().Done()
+	o.Dedent().Done().Dedent().Done()
 	return
 }
 

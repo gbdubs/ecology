@@ -80,12 +80,8 @@ func ProjectDoesNotExist(project string, em *ecology_manifest.EcologyManifest) e
 }
 
 func projectExists(project string, em *ecology_manifest.EcologyManifest) bool {
-	for _, otherProjectManifestPath := range em.ProjectManifestPaths {
-		if otherProjectManifestPath == em.GetProjectManifestPath(project) {
-			return true
-		}
-	}
-	return false
+	_, err := em.GetProjectManifest(project)
+	return err == nil
 }
 
 func Lambda(lambda string) error {
