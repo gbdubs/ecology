@@ -2,7 +2,7 @@ package push_project
 
 import (
 	"github.com/gbdubs/ecology/manifests/ecology_manifest"
-	"github.com/gbdubs/ecology/manifests/project_manifest"
+	"github.com/gbdubs/ecology/util/flag_validation"
 	"github.com/gbdubs/ecology/util/output"
 )
 
@@ -11,16 +11,19 @@ type PushProjectCommand struct {
 	Project         string
 }
 
-func (plc PushProjectCommand) Execute(o *output.Output) (err error) {
-	o.Info("PushProjectCommand - Get Project Manifest %s", plc.Project).Indent()
-	pm, err := project_manifest.GetProjectManifestFromEcologyManifest(plc.Project, &plc.EcologyManifest, o)
+func (ppc PushProjectCommand) Execute(o *output.Output) (err error) {
+	em := &ppc.EcologyManifest
+	err = flag_validation.ValidateAll(
+		flag_validation.Project(ppc.Project),
+		flag_validation.ProjectExists(ppc.Project, em),
+		err)
 	if err != nil {
 		o.Error(err)
-		return
+		return err
 	}
-	o.Dedent().Done()
+	pm, err := em.GetProjectManifest(ppc.Project)
 
-	o.Info("PushProjectCommand - %s.PushToPlatform", plc.Project).Indent()
+	o.Info("PushProjectCommand - %s.PushToPlatform", ppc.Project).Indent()
 	err = pm.PushToPlatform(o)
 	if err != nil {
 		o.Error(err)
@@ -28,7 +31,7 @@ func (plc PushProjectCommand) Execute(o *output.Output) (err error) {
 	}
 	o.Dedent().Done()
 
-	o.Info("PushProjectCommand - %s.Save", plc.Project).Indent()
+	o.Info("PushProjectCommand - %s.Save", ppc.Project).Indent()
 	err = pm.Save(o)
 	if err != nil {
 		o.Error(err)

@@ -73,8 +73,8 @@ func (lm *LambdaManifest) packageToDeploy(o *output.Output) (err error) {
 		return err
 	}
 	o.Dedent().Done()
-  
-  o.Info("LambdaManifest - packageToDeploy - Zip").Indent()
+
+	o.Info("LambdaManifest - packageToDeploy - Zip").Indent()
 	zipArgs := strings.Split(fmt.Sprintf("-j %s/%s.zip %s/%s", lambdaFolder, lm.FullyQualifiedLambdaName, lambdaFolder, lm.FullyQualifiedLambdaName), " ")
 	ctx, cancelZip := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelZip()
@@ -115,10 +115,9 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 		o.Info("LambdaManifest - PushToPlatform - First Lambda Push")
 	}
 
-  
 	err = lm.packageToDeploy(o)
 	if err != nil {
-	  return err
+		return err
 	}
 
 	o.Info("LambdaManifest - PushToPlatform - Read Zip").Indent()
@@ -137,7 +136,7 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 	})
 	if err == nil {
 		o.Warning("Lambda Already Exists.").Dedent().Done()
-	  o.Info("LambdaManifest - PushToPlatform - Update Lambda").Indent()
+		o.Info("LambdaManifest - PushToPlatform - Update Lambda").Indent()
 		updateFunctionRequest := &lambda.UpdateFunctionCodeInput{
 			ZipFile:      zipBytes,
 			FunctionName: aws.String(lm.FullyQualifiedLambdaName),
@@ -150,7 +149,7 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 		o.Dedent().Done()
 	} else {
 		o.Warning("Lambda Does Not Exist.").Dedent().Done()
-	  o.Info("LambdaManifest - PushToPlatform - Create Lambda").Indent()
+		o.Info("LambdaManifest - PushToPlatform - Create Lambda").Indent()
 		createFunctionRequest := &lambda.CreateFunctionInput{
 			Code: &lambda.FunctionCode{
 				ZipFile: zipBytes,

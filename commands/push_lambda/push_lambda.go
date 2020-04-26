@@ -2,7 +2,7 @@ package push_lambda
 
 import (
 	"github.com/gbdubs/ecology/manifests/ecology_manifest"
-	"github.com/gbdubs/ecology/manifests/project_manifest"
+	"github.com/gbdubs/ecology/util/flag_validation"
 	"github.com/gbdubs/ecology/util/output"
 )
 
@@ -13,21 +13,19 @@ type PushLambdaCommand struct {
 }
 
 func (plc PushLambdaCommand) Execute(o *output.Output) (err error) {
-	o.Info("PushLambdaCommand - Get Project Manifest %s", plc.Project).Indent()
-	pm, err := project_manifest.GetProjectManifestFromEcologyManifest(plc.Project, &plc.EcologyManifest, o)
+	em := &plc.EcologyManifest
+	pm, err := em.GetProjectManifest(plc.Project)
+	err = flag_validation.ValidateAll(
+		flag_validation.Project(plc.Project),
+		flag_validation.ProjectExists(plc.Project, em),
+		flag_validation.Lambda(plc.Lambda),
+		flag_validation.LambdaExists(plc.Lambda, pm),
+		err)
 	if err != nil {
 		o.Error(err)
-		return
+		return err
 	}
-	o.Dedent().Done()
-
-	o.Info("PushLambdaCommand - %s.GetLambdaManifest", plc.Project).Indent()
-	lm, err := pm.GetLambdaManifest(plc.Lambda, o)
-	if err != nil {
-		o.Error(err)
-		return
-	}
-	o.Dedent().Done()
+	lm, err := pm.GetLambdaManifest(plc.Lambda)
 
 	o.Info("PushLambdaCommand - %s.PushToPlatform", plc.Lambda).Indent()
 	err = lm.PushToPlatform(o)

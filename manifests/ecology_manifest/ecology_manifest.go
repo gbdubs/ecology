@@ -2,6 +2,7 @@ package ecology_manifest
 
 import (
 	"encoding/json"
+	"github.com/gbdubs/ecology/manifests/project_manifest"
 	"github.com/gbdubs/ecology/util/output"
 	"io/ioutil"
 	"os"
@@ -81,10 +82,10 @@ func (ecologyManifest EcologyManifest) Save(o *output.Output) (err error) {
 	return
 }
 
-func (cp EcologyManifest) ToString() string {
-	out, err := json.Marshal(cp)
-	if err != nil {
-		panic(err)
-	}
-	return string(out)
+func (em *EcologyManifest) GetProjectManifestPath(project string) string {
+	return em.EcologyProjectsDirectoryPath + "/" + project + "/ecology.ecology"
+}
+
+func (em *EcologyManifest) GetProjectManifest(project string) (*project_manifest.ProjectManifest, error) {
+	return project_manifest.GetProjectManifestFromFile(em.GetProjectManifestPath(project))
 }

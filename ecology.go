@@ -105,12 +105,13 @@ func main() {
 	switch os.Args[1] {
 	case "create_project":
 		createProjectCommand.Parse(os.Args[2:])
-		create_project.CreateProjectCommand{
-			EcologyManifest:   ecologyManifest,
-			ProjectSimpleName: *createProjectProjectPtr,
-			Platform:          *createProjectPlatformPtr,
-			Region:            *createProjectRegionPtr,
-		}.Execute(o)
+		cpc := &create_project.CreateProjectCommand{
+			EcologyManifest: ecologyManifest,
+			Platform:        *createProjectPlatformPtr,
+			Region:          *createProjectRegionPtr,
+			Project:         *createProjectProjectPtr,
+		}
+		cpc.Execute(o)
 	case "list_project":
 		listProjectCommand.Parse(os.Args[2:])
 		list_project.ListProjectCommand{

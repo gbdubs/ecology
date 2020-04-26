@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gbdubs/ecology/manifests/ecology_manifest"
 	"github.com/gbdubs/ecology/manifests/lambda_manifest"
 	"github.com/gbdubs/ecology/util/output"
 	"io/ioutil"
@@ -18,25 +17,15 @@ type ProjectManifest struct {
 	LambdaManifests     []lambda_manifest.LambdaManifest
 }
 
-func GetProjectManifestFromEcologyManifest(project string, em *ecology_manifest.EcologyManifest, o *output.Output) (projectManifest *ProjectManifest, err error) {
-	projectManifestPath := em.EcologyProjectsDirectoryPath + "/" + project + "/ecology.ecology"
-	return GetProjectManifest(projectManifestPath, o)
-}
-
-func GetProjectManifest(projectManifestPath string, o *output.Output) (projectManifest *ProjectManifest, err error) {
-	o.Info("Reading Project Manifest from %s...", projectManifestPath).Indent()
+func GetProjectManifestFromFile(projectManifestPath string) (projectManifest *ProjectManifest, err error) {
 	data, err := ioutil.ReadFile(projectManifestPath)
 	if err == nil {
 		err = json.Unmarshal(data, &projectManifest)
 	}
-	if err != nil {
-		o.Error(err)
-	}
-	o.Dedent().Done()
 	return
 }
 
-func (pm *ProjectManifest) GetLambdaManifest(lambdaName string, o *output.Output) (*lambda_manifest.LambdaManifest, error) {
+func (pm *ProjectManifest) GetLambdaManifest(lambdaName string) (*lambda_manifest.LambdaManifest, error) {
 	// TRICKSY POINTERSES! FILTHY TRICKSY POINTERSESSESSS!
 	for i, l := range pm.LambdaManifests {
 		if l.LambdaName == lambdaName {

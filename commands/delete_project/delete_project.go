@@ -2,7 +2,7 @@ package delete_project
 
 import (
 	"github.com/gbdubs/ecology/manifests/ecology_manifest"
-	"github.com/gbdubs/ecology/manifests/project_manifest"
+	"github.com/gbdubs/ecology/util/flag_validation"
 	"github.com/gbdubs/ecology/util/output"
 )
 
@@ -12,13 +12,16 @@ type DeleteProjectCommand struct {
 }
 
 func (dpc DeleteProjectCommand) Execute(o *output.Output) (err error) {
-	o.Info("DeleteProjectCommand - Get Project Manifest %s", dpc.Project).Indent()
-	pm, err := project_manifest.GetProjectManifestFromEcologyManifest(dpc.Project, &dpc.EcologyManifest, o)
+	em := &dpc.EcologyManifest
+	err = flag_validation.ValidateAll(
+		flag_validation.Project(dpc.Project),
+		flag_validation.ProjectExists(dpc.Project, em),
+		err)
 	if err != nil {
 		o.Error(err)
-		return
+		return err
 	}
-	o.Dedent().Done()
+	pm, err := em.GetProjectManifest(dpc.Project)
 
 	o.Info("DeleteProjectCommand - %s.DeleteFromPlatform", dpc.Project).Indent()
 	err = pm.DeleteFromPlatform(o)
