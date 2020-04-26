@@ -64,7 +64,7 @@ func (rm *RoleManifest) PushToPlatform(o *output.Output) (err error) {
 	return
 }
 
-func (rm *RoleManifest) RemoveFromPlatform(o *output.Output) (err error) {
+func (rm *RoleManifest) DeleteFromPlatform(o *output.Output) (err error) {
 	o.Info("Removing Role %s From Platform", rm.RoleName).Indent()
 	if !rm.ExistsOnPlatform {
 		o.Info("No Removal Needed.").Dedent().Done()

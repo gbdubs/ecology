@@ -2,14 +2,14 @@ package project_manifest
 
 import (
 	"encoding/json"
-	"github.com/gbdubs/ecology/manifests/lambda_manifest"
+	"errors"
+	"fmt"
 	"github.com/gbdubs/ecology/manifests/ecology_manifest"
+	"github.com/gbdubs/ecology/manifests/lambda_manifest"
 	"github.com/gbdubs/ecology/util/output"
 	"io/ioutil"
 	"os"
-	"fmt"
 	"strings"
-	"errors"
 )
 
 type ProjectManifest struct {
@@ -19,8 +19,8 @@ type ProjectManifest struct {
 }
 
 func GetProjectManifestFromEcologyManifest(project string, em *ecology_manifest.EcologyManifest, o *output.Output) (projectManifest *ProjectManifest, err error) {
-  projectManifestPath := em.EcologyProjectsDirectoryPath + "/" + project + "/ecology.ecology";
-  return GetProjectManifest(projectManifestPath, o)
+	projectManifestPath := em.EcologyProjectsDirectoryPath + "/" + project + "/ecology.ecology"
+	return GetProjectManifest(projectManifestPath, o)
 }
 
 func GetProjectManifest(projectManifestPath string, o *output.Output) (projectManifest *ProjectManifest, err error) {
@@ -37,15 +37,28 @@ func GetProjectManifest(projectManifestPath string, o *output.Output) (projectMa
 }
 
 func (pm *ProjectManifest) GetLambdaManifest(lambdaName string, o *output.Output) (*lambda_manifest.LambdaManifest, error) {
-  // TRICKSY POINTERSES! FILTHY TRICKSY POINTERSESSESSS!
-  for i, l := range pm.LambdaManifests {
-    if l.LambdaName == lambdaName {
-      return &pm.LambdaManifests[i], nil
-    }
-  }
-  return nil, errors.New(fmt.Sprintf("No Lambda named %s in Project %s", lambdaName, pm.ProjectName))
+	// TRICKSY POINTERSES! FILTHY TRICKSY POINTERSESSESSS!
+	for i, l := range pm.LambdaManifests {
+		if l.LambdaName == lambdaName {
+			return &pm.LambdaManifests[i], nil
+		}
+	}
+	return nil, errors.New(fmt.Sprintf("No Lambda named %s in Project %s", lambdaName, pm.ProjectName))
 }
 
+func (pm *ProjectManifest) RemoveLambdaManifest(ptr *lambda_manifest.LambdaManifest) error {
+	indexToRemove := -1
+	for i, _ := range pm.LambdaManifests {
+		if &pm.LambdaManifests[i] == ptr {
+			indexToRemove = i
+		}
+	}
+	if indexToRemove == -1 {
+		return errors.New("No Lambda with the given pointer was present")
+	}
+	pm.LambdaManifests = append(pm.LambdaManifests[:indexToRemove], pm.LambdaManifests[indexToRemove+1:]...)
+	return nil
+}
 
 func (projectManifest *ProjectManifest) Save(o *output.Output) (err error) {
 	o.Info("Writing Project Manifest to %s", projectManifest.ProjectManifestPath).Indent()
@@ -67,13 +80,31 @@ func (projectManifest *ProjectManifest) Save(o *output.Output) (err error) {
 
 func (pm *ProjectManifest) PushToPlatform(o *output.Output) (err error) {
 	o.Info("Pushing Project %s to Platform", pm.ProjectName).Indent()
-	o.Info("Pushing Lambdas")
+	o.Info("Pushing Lambdas").Indent()
 	for _, lm := range pm.LambdaManifests {
 		err = lm.PushToPlatform(o)
 		if err != nil {
 			o.Error(err)
 			return err
 		}
+	}
+	o.Dedent().Done()
+	o.Dedent().Done()
+	return
+}
+
+func (pm *ProjectManifest) DeleteFromPlatform(o *output.Output) (err error) {
+	o.Info("Deleting Project %s", pm.ProjectName).Indent()
+	o.Info("Deleting Lambdas").Indent()
+	for i, _ := range pm.LambdaManifests {
+		lm := &pm.LambdaManifests[i]
+		err = lm.DeleteFromPlatform(o)
+		if err != nil {
+			o.Error(err)
+			pm.Save(o) // Saves partial deletion progress in case we fail midway.
+			return
+		}
+		err = pm.RemoveLambdaManifest(lm)
 	}
 	o.Dedent().Done()
 	o.Dedent().Done()

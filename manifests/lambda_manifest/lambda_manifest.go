@@ -136,47 +136,70 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 
 	svc := lambda.New(session.New(), aws.NewConfig().WithRegion(lm.Region))
 
-  o.Info("Determining if Lambda Already Exists...").Indent()
+	o.Info("Determining if Lambda Already Exists...").Indent()
 	_, err = svc.GetFunction(&lambda.GetFunctionInput{
 		FunctionName: aws.String(lm.FullyQualifiedLambdaName),
 	})
 	if err == nil {
-	  o.Info("Lambda Already Exists.").Dedent().Done()
-  	o.Info("Updating Lambda on AWS...").Indent()
-    updateFunctionRequest := &lambda.UpdateFunctionCodeInput{
-      ZipFile: zipBytes,
-      FunctionName: aws.String(lm.FullyQualifiedLambdaName),
-      Publish:      aws.Bool(true),
-    }
-    _, err = svc.UpdateFunctionCode(updateFunctionRequest)
-    if err != nil {
-      o.Error(err)
-      return err
-    }
-    o.Dedent().Done()
+		o.Info("Lambda Already Exists.").Dedent().Done()
+		o.Info("Updating Lambda on AWS...").Indent()
+		updateFunctionRequest := &lambda.UpdateFunctionCodeInput{
+			ZipFile:      zipBytes,
+			FunctionName: aws.String(lm.FullyQualifiedLambdaName),
+			Publish:      aws.Bool(true),
+		}
+		_, err = svc.UpdateFunctionCode(updateFunctionRequest)
+		if err != nil {
+			o.Error(err)
+			return err
+		}
+		o.Dedent().Done()
 	} else {
-    o.Info("Creating Lambda on AWS...").Indent()
-    createFunctionRequest := &lambda.CreateFunctionInput{
-      Code: &lambda.FunctionCode{
-        ZipFile: zipBytes,
-      },
-      Description:  aws.String(fmt.Sprintf("Ecology-Generated Lambda %s.", lm.FullyQualifiedLambdaName)),
-      FunctionName: aws.String(lm.FullyQualifiedLambdaName),
-      Handler:      aws.String(lm.FullyQualifiedLambdaName),
-      Publish:      aws.Bool(true),
-      Role:         aws.String(lm.ExecutorRoleManifest.Arn),
-      Runtime:      aws.String("go1.x"),
-    }
-    _, err = svc.CreateFunction(createFunctionRequest)
-    if err != nil {
-      o.Error(err)
-      return err
-    }
-    o.Dedent().Done()
-  }
+		o.Info("Creating Lambda on AWS...").Indent()
+		createFunctionRequest := &lambda.CreateFunctionInput{
+			Code: &lambda.FunctionCode{
+				ZipFile: zipBytes,
+			},
+			Description:  aws.String(fmt.Sprintf("Ecology-Generated Lambda %s.", lm.FullyQualifiedLambdaName)),
+			FunctionName: aws.String(lm.FullyQualifiedLambdaName),
+			Handler:      aws.String(lm.FullyQualifiedLambdaName),
+			Publish:      aws.Bool(true),
+			Role:         aws.String(lm.ExecutorRoleManifest.Arn),
+			Runtime:      aws.String("go1.x"),
+		}
+		_, err = svc.CreateFunction(createFunctionRequest)
+		if err != nil {
+			o.Error(err)
+			return err
+		}
+		o.Dedent().Done()
+	}
 	lm.LambdaCodeLastPushedHash = currentCodeHash
 	lm.ExistsOnPlatform = true
 	return
+}
+
+func (lm *LambdaManifest) DeleteFromPlatform(o *output.Output) (err error) {
+	o.Info("Deleting Lambda %s From Platform", lm.FullyQualifiedLambdaName).Indent()
+
+	err = lm.ExecutorRoleManifest.DeleteFromPlatform(o)
+	if err != nil {
+		o.Error(err)
+		return
+	}
+
+	deleteFunctionRequest := &lambda.DeleteFunctionInput{
+		FunctionName: aws.String(lm.FullyQualifiedLambdaName),
+	}
+	svc := lambda.New(session.New(), aws.NewConfig().WithRegion(lm.Region))
+	_, err = svc.DeleteFunction(deleteFunctionRequest)
+	if err != nil {
+		o.Error(err)
+		return err
+	}
+	lm.ExistsOnPlatform = false
+	lm.LambdaCodeLastPushedHash = ""
+	return nil
 }
 
 const initialLambdaFileContents = `
