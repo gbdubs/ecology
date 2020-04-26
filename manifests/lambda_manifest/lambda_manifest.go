@@ -46,10 +46,11 @@ func New(projectDir string, projectName string, lambdaName string, region string
 		ExecutorRoleManifest:     erm,
 	}
 	lm = &lambdaManifest
+	lm.writeInitialFile(o)
 	return
 }
 
-func (lm *LambdaManifest) WriteInitialFile(o *output.Output) (err error) {
+func (lm *LambdaManifest) writeInitialFile(o *output.Output) (err error) {
 	o.Info("Writing first version of %s to disk", lm.FullyQualifiedLambdaName)
 	filePath := lm.LambdaCodePath
 	err = os.MkdirAll(lm.LambdaCodeFolderPath, 0777)
@@ -65,7 +66,7 @@ func (lm *LambdaManifest) WriteInitialFile(o *output.Output) (err error) {
 	return
 }
 
-func (lm *LambdaManifest) PackageToDeploy(o *output.Output) (err error) {
+func (lm *LambdaManifest) packageToDeploy(o *output.Output) (err error) {
 	o.Info("Building Lambda").Indent()
 	lambdaFolder := lm.LambdaCodePath[:strings.LastIndex(lm.LambdaCodePath, "/")]
 	buildArgs := strings.Split(fmt.Sprintf("GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o %s/%s %s/%s.go", lambdaFolder, lm.FullyQualifiedLambdaName, lambdaFolder, lm.LambdaName), " ")
@@ -106,13 +107,15 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 
 	var currentCodeHash string
 	if lm.ExistsOnPlatform {
-		o.Info("Verifying Lambda is Up To Date...")
+		o.Info("Verifying Lambda is Up To Date...").Indent()
 		currentCodeHash, err = file_hash.ComputeFileHash(lm.LambdaCodePath, o)
+		o.Info("Old Hash: %s", lm.LambdaCodeLastPushedHash)
+		o.Info("Current Hash: %s", currentCodeHash)
 		if err != nil {
 			return err
 		}
 		if currentCodeHash == lm.LambdaCodeLastPushedHash {
-			o.Info("Code hasn't changed since last push, no push needed.'")
+			o.Info("Code hasn't changed since last push, no push needed.").Dedent()
 			return nil
 		}
 		o.Info("Code has changed since last push.")
@@ -120,7 +123,7 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 		o.Info("Lambda has never been deployed.")
 	}
 
-	lm.PackageToDeploy(o)
+	lm.packageToDeploy(o)
 
 	o.Info("Reading Deployable Lambda from Disk...").Indent()
 	zipPath := fmt.Sprintf("%s/%s.zip", lambdaFolder, lm.FullyQualifiedLambdaName)
@@ -133,28 +136,46 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 
 	svc := lambda.New(session.New(), aws.NewConfig().WithRegion(lm.Region))
 
-	o.Info("Creating Lambda on AWS...").Indent()
-	createFunctionRequest := &lambda.CreateFunctionInput{
-		Code: &lambda.FunctionCode{
-			ZipFile: zipBytes,
-		},
-		Description:  aws.String(fmt.Sprintf("Ecology-Generated Lambda %s.", lm.FullyQualifiedLambdaName)),
+  o.Info("Determining if Lambda Already Exists...").Indent()
+	_, err = svc.GetFunction(&lambda.GetFunctionInput{
 		FunctionName: aws.String(lm.FullyQualifiedLambdaName),
-		Handler:      aws.String(lm.FullyQualifiedLambdaName),
-		Publish:      aws.Bool(true),
-		Role:         aws.String(lm.ExecutorRoleManifest.Arn),
-		Runtime:      aws.String("go1.x"),
-	}
-	_, err = svc.CreateFunction(createFunctionRequest)
-	if err != nil {
-		o.Error(err)
-		return err
-	}
-	o.Dedent().Done()
-
+	})
+	if err == nil {
+	  o.Info("Lambda Already Exists.").Dedent().Done()
+  	o.Info("Updating Lambda on AWS...").Indent()
+    updateFunctionRequest := &lambda.UpdateFunctionCodeInput{
+      ZipFile: zipBytes,
+      FunctionName: aws.String(lm.FullyQualifiedLambdaName),
+      Publish:      aws.Bool(true),
+    }
+    _, err = svc.UpdateFunctionCode(updateFunctionRequest)
+    if err != nil {
+      o.Error(err)
+      return err
+    }
+    o.Dedent().Done()
+	} else {
+    o.Info("Creating Lambda on AWS...").Indent()
+    createFunctionRequest := &lambda.CreateFunctionInput{
+      Code: &lambda.FunctionCode{
+        ZipFile: zipBytes,
+      },
+      Description:  aws.String(fmt.Sprintf("Ecology-Generated Lambda %s.", lm.FullyQualifiedLambdaName)),
+      FunctionName: aws.String(lm.FullyQualifiedLambdaName),
+      Handler:      aws.String(lm.FullyQualifiedLambdaName),
+      Publish:      aws.Bool(true),
+      Role:         aws.String(lm.ExecutorRoleManifest.Arn),
+      Runtime:      aws.String("go1.x"),
+    }
+    _, err = svc.CreateFunction(createFunctionRequest)
+    if err != nil {
+      o.Error(err)
+      return err
+    }
+    o.Dedent().Done()
+  }
 	lm.LambdaCodeLastPushedHash = currentCodeHash
 	lm.ExistsOnPlatform = true
-
 	return
 }
 
