@@ -70,7 +70,8 @@ func (projectManifest *ProjectManifest) Save(o *output.Output) (err error) {
 func (pm *ProjectManifest) PushToPlatform(o *output.Output) (err error) {
 	o.Info("Pushing Project %s to Platform", pm.ProjectName).Indent()
 	o.Info("Pushing Lambdas").Indent()
-	for _, lm := range pm.LambdaManifests {
+	for i, _ := range pm.LambdaManifests {
+		lm := &pm.LambdaManifests[i]
 		err = lm.PushToPlatform(o)
 		if err != nil {
 			o.Error(err)

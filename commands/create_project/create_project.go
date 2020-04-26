@@ -30,6 +30,7 @@ func (cpc *CreateProjectCommand) Execute(o *output.Output) (err error) {
 		ProjectName:         cpc.Project,
 		ProjectManifestPath: em.EcologyProjectsDirectoryPath + "/" + cpc.Project + "/ecology.ecology",
 	}
+
 	err = manifest.Save(o)
 	o.Dedent().Done()
 	return

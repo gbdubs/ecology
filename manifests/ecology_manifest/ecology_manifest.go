@@ -15,7 +15,7 @@ type EcologyManifest struct {
 const ecologyManifestFilePath = "/Users/gradyward/go/ecology/ecology.ecology"
 const defaultEcologyProjectsDirectoryPath = "/Users/gradyward/go/src/ecology"
 
-func GetEcologyManifest(o *output.Output) (ecologyManifest EcologyManifest, err error) {
+func Get(o *output.Output) (ecologyManifest EcologyManifest, err error) {
 	data, err := ioutil.ReadFile(ecologyManifestFilePath)
 	if err != nil {
 		o.Warning("Ecology Manifest Not Found. Creating New Ecology Manifest.").Indent()
@@ -30,7 +30,6 @@ func GetEcologyManifest(o *output.Output) (ecologyManifest EcologyManifest, err 
 			return
 		}
 	}
-	ecologyManifest.Save(o)
 	return ecologyManifest, err
 }
 

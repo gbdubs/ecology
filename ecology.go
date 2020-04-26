@@ -18,7 +18,7 @@ import (
 func main() {
 	o := output.New()
 	o.Info("Reading Ecology Manifest...").Indent()
-	ecologyManifest, err := ecology_manifest.GetEcologyManifest(o)
+	ecologyManifest, err := ecology_manifest.Get(o)
 	o.Dedent().Done()
 
 	if err != nil {

@@ -109,13 +109,13 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 
 	var currentCodeHash string
 	if lm.DeployInfo.LastDeployedHash != "" {
-		o.Info("LambdaManifest - PushToPlatform - Is Push Necessary?").Indent()
+		o.Info("LambdaManifest - PushToPlatform - Checking if Nescessary").Indent()
 		currentCodeHash, err = file_hash.ComputeFileHash(lm.CodeInfo.CodePath)
 		if err != nil {
 			return err
 		}
-		o.Info("Old Hash: %s", lm.DeployInfo.LastDeployedHash)
-		o.Info("Current Hash: %s", currentCodeHash)
+		o.Info("Old Code Hash: %s", lm.DeployInfo.LastDeployedHash)
+		o.Info("New Code Hash: %s", currentCodeHash)
 		if currentCodeHash == lm.DeployInfo.LastDeployedHash {
 			o.Dedent().Success("Code hasn't changed since last push, no push needed.").Dedent().Done()
 			return nil
@@ -123,7 +123,9 @@ func (lm *LambdaManifest) PushToPlatform(o *output.Output) (err error) {
 		o.Dedent().Warning("Code has changed since last push.")
 	} else {
 		o.Info("LambdaManifest - PushToPlatform - First Lambda Push")
-		currentCodeHash, err = file_hash.ComputeFileHash(lm.CodeInfo.CodePath)
+		if currentCodeHash, err = file_hash.ComputeFileHash(lm.CodeInfo.CodePath); err != nil {
+			return err
+		}
 	}
 
 	err = lm.packageToDeploy(o)
