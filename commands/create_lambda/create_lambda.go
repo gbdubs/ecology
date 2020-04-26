@@ -17,7 +17,7 @@ type CreateLambdaCommand struct {
 }
 
 func (clc CreateLambdaCommand) Execute(o *output.Output) (err error) {
-	o.Info("Looking up Project Manifest for %s", clc.Project).Indent()
+	o.Info("CreateLambdaCommand - Get Project Manifest %s", clc.Project).Indent()
 	pm, err := project_manifest.GetProjectManifestFromEcologyManifest(clc.Project, &clc.EcologyManifest, o)
 	if err != nil {
 		o.Error(err)
@@ -25,7 +25,7 @@ func (clc CreateLambdaCommand) Execute(o *output.Output) (err error) {
 	}
 	o.Dedent().Done()
 
-	o.Info("Creating Lambda").Indent()
+	o.Info("CreateLambdaCommand - LambdaManifest.New").Indent()
 	projectRootDir := pm.ProjectManifestPath[:strings.LastIndex(pm.ProjectManifestPath, "/")]
 	lm, err := lambda_manifest.New(
 		projectRootDir,
@@ -37,8 +37,15 @@ func (clc CreateLambdaCommand) Execute(o *output.Output) (err error) {
 		o.Error(err)
 		return
 	}
+	o.Dedent().Done()
+	
+	o.Info("CreateLambdaCommand - %s.Save", clc.Project).Indent()
 	pm.LambdaManifests = append(pm.LambdaManifests, *lm)
-	pm.Save(o)
+	err = pm.Save(o)
+	if err != nil {
+		o.Error(err)
+		return
+	}
 	o.Dedent().Done()
 	return nil
 }
