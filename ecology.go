@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"github.com/gbdubs/ecology/commands/create_lambda"
 	"github.com/gbdubs/ecology/commands/create_project"
 	"github.com/gbdubs/ecology/commands/delete_lambda"
@@ -23,6 +24,7 @@ func main() {
 
 	if err != nil {
 		o.Error(err)
+		os.Exit(1)
 	}
 
 	// Subcommands
@@ -42,16 +44,18 @@ func main() {
 	platformHelpText := "The name of the platform that should be used for this command, AWS or GCP."
 	// create_project.platform
 	createProjectPlatformPtr := createProjectCommand.String(platformFlagKey, platformDefaultValue, platformHelpText)
-	// create_lambda.platform
-	createLambdaPlatformPtr := createLambdaCommand.String(platformFlagKey, platformDefaultValue, platformHelpText)
 
 	regionFlagKey := "region"
 	regionDefaultValue := "us-west-2"
 	regionHelpText := "The name of the region that new resources should be created in"
 	// create_project.region
 	createProjectRegionPtr := createProjectCommand.String(regionFlagKey, regionDefaultValue, regionHelpText)
-	// create_lambda.region
-	createLambdaRegionPtr := createLambdaCommand.String(regionFlagKey, regionDefaultValue, regionHelpText)
+
+	pathFlagKey := "path"
+	pathDefaultValue := ""
+	pathHelpText := "The path that the configuration for a project should go in"
+	// create_project.path
+	createProjectPathPtr := createProjectCommand.String(pathFlagKey, pathDefaultValue, pathHelpText)
 
 	projectFlagKey := "project"
 	projectDefaultValue := ""
@@ -85,7 +89,11 @@ func main() {
 	// list_project.verbose
 	listProjectVerbosePtr := listProjectCommand.Bool(verboseFlagKey, verboseDefaultValue, verboseHelpText)
 
-	illegalCommandNameError := errors.New(`Invalid commands - implemented commands:
+	command := ""
+	if len(os.Args) > 1 {
+		command = os.Args[1]
+	}
+	illegalCommandNameError := errors.New(fmt.Sprintf(`Invalid command "%v" - implemented commands:
 	help
 	
 	create_project
@@ -95,7 +103,7 @@ func main() {
 	
 	create_lambda
 	push_lambda
-	delete_lambda`)
+	delete_lambda`, command))
 
 	if len(os.Args) < 2 {
 		o.Error(illegalCommandNameError)
@@ -110,6 +118,7 @@ func main() {
 			Platform:        *createProjectPlatformPtr,
 			Region:          *createProjectRegionPtr,
 			Project:         *createProjectProjectPtr,
+			Path:            *createProjectPathPtr,
 		}
 		cpc.Execute(o)
 	case "list_project":
@@ -136,8 +145,6 @@ func main() {
 			EcologyManifest: ecologyManifest,
 			Project:         *createLambdaProjectPtr,
 			Lambda:          *createLambdaLambdaPtr,
-			Platform:        *createLambdaPlatformPtr,
-			Region:          *createLambdaRegionPtr,
 		}.Execute(o)
 	case "push_lambda":
 		pushLambdaCommand.Parse(os.Args[2:])

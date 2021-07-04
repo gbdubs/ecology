@@ -6,12 +6,13 @@ import (
 	"github.com/gbdubs/ecology/util/flag_validation"
 	"github.com/gbdubs/ecology/util/output"
 	"strings"
+	"io/ioutil"
+	"os"
+	"fmt"
 )
 
 type CreateLambdaCommand struct {
 	EcologyManifest ecology_manifest.EcologyManifest
-	Platform        string
-	Region          string
 	Project         string
 	Lambda          string
 }
@@ -20,8 +21,6 @@ func (clc CreateLambdaCommand) Execute(o *output.Output) error {
 	em := &clc.EcologyManifest
 	pm, err := em.GetProjectManifest(clc.Project)
 	err = flag_validation.ValidateAll(
-		flag_validation.Platform(clc.Platform),
-		flag_validation.Region(clc.Region),
 		flag_validation.Project(clc.Project),
 		flag_validation.ProjectExists(clc.Project, em),
 		flag_validation.Lambda(clc.Lambda),
@@ -33,16 +32,31 @@ func (clc CreateLambdaCommand) Execute(o *output.Output) error {
 	}
 
 	o.Info("CreateLambdaCommand - LambdaManifest.New").Indent()
-	projectRootDir := pm.ProjectManifestPath[:strings.LastIndex(pm.ProjectManifestPath, "/")]
+	projectRootDir := pm.Config.ManifestPath[:strings.LastIndex(pm.Config.ManifestPath, "/")]
 	lm, err := lambda_manifest.New(
 		projectRootDir,
 		clc.Project,
 		clc.Lambda,
-		clc.Region,
+		pm.Deploy.Platform,
+		pm.Deploy.Region,
 		o)
 	if err != nil {
 		o.Error(err)
 		return err
+	}
+	o.Dedent().Done()
+	
+	o.Info("CreateLambdaCommand - Create Initial Contents").Indent()
+	err = os.MkdirAll(lm.Config.FolderPath, 0777)
+	if err != nil {
+	  o.Error(err)
+	  return err
+	}
+	contents := fmt.Sprintf(initialLambdaFileContents, clc.Lambda, clc.Lambda, clc.Lambda)
+  err = ioutil.WriteFile(lm.Config.CodePath, []byte(contents), 0777)
+  if err != nil {
+	  o.Error(err)
+	  return err
 	}
 	o.Dedent().Done()
 
@@ -56,3 +70,24 @@ func (clc CreateLambdaCommand) Execute(o *output.Output) error {
 	o.Dedent().Done()
 	return nil
 }
+
+const initialLambdaFileContents = `package main
+
+import (
+  "context"
+  "github.com/aws/aws-lambda-go/lambda"
+)
+
+type %sRequest struct {
+  Input string
+}
+
+func HandleRequest(ctx context.Context, request %sRequest) (string, error) {
+  return "This is the lambda %s! request.Input=" + request.Input, nil
+}
+
+func main() {
+  lambda.Start(HandleRequest)
+}
+`
+

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gbdubs/ecology/manifests/api_manifest"
 	"github.com/gbdubs/ecology/manifests/lambda_manifest"
 	"github.com/gbdubs/ecology/util/output"
 	"io/ioutil"
@@ -11,10 +12,21 @@ import (
 	"strings"
 )
 
+type ProjectConfigInfo struct {
+	Name         string
+	ManifestPath string
+}
+
+type ProjectDeployInfo struct {
+	Platform string
+	Region   string
+}
+
 type ProjectManifest struct {
-	ProjectManifestPath string
-	ProjectName         string
-	LambdaManifests     []lambda_manifest.LambdaManifest
+	Config          ProjectConfigInfo
+	Deploy          ProjectDeployInfo
+	LambdaManifests []lambda_manifest.LambdaManifest
+	ApiManifest     api_manifest.ApiManifest
 }
 
 func GetProjectManifestFromFile(projectManifestPath string) (projectManifest *ProjectManifest, err error) {
@@ -28,11 +40,11 @@ func GetProjectManifestFromFile(projectManifestPath string) (projectManifest *Pr
 func (pm *ProjectManifest) GetLambdaManifest(lambdaName string) (*lambda_manifest.LambdaManifest, error) {
 	// TRICKSY POINTERSES! FILTHY TRICKSY POINTERSESSESSS!
 	for i, l := range pm.LambdaManifests {
-		if l.LambdaName == lambdaName {
+		if l.Config.Name == lambdaName {
 			return &pm.LambdaManifests[i], nil
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("No Lambda named %s in Project %s", lambdaName, pm.ProjectName))
+	return nil, errors.New(fmt.Sprintf("No Lambda named %s in Project %s", lambdaName, pm.Config.Name))
 }
 
 func (pm *ProjectManifest) RemoveLambdaManifest(ptr *lambda_manifest.LambdaManifest) error {
@@ -49,10 +61,10 @@ func (pm *ProjectManifest) RemoveLambdaManifest(ptr *lambda_manifest.LambdaManif
 	return nil
 }
 
-func (projectManifest *ProjectManifest) Save(o *output.Output) (err error) {
-	o.Info("Writing Project Manifest to %s", projectManifest.ProjectManifestPath).Indent()
-	contents, _ := json.MarshalIndent(projectManifest, "", "  ")
-	filePath := projectManifest.ProjectManifestPath
+func (pm *ProjectManifest) Save(o *output.Output) (err error) {
+	o.Info("Writing Project Manifest to %s", pm.Config.ManifestPath).Indent()
+	contents, _ := json.MarshalIndent(pm, "", "  ")
+	filePath := pm.Config.ManifestPath
 	if strings.Index(filePath, "/") > -1 {
 		parentDir := filePath[:strings.LastIndex(filePath, "/")]
 		err = os.MkdirAll(parentDir, 0777)
@@ -68,7 +80,13 @@ func (projectManifest *ProjectManifest) Save(o *output.Output) (err error) {
 }
 
 func (pm *ProjectManifest) PushToPlatform(o *output.Output) (err error) {
-	o.Info("Pushing Project %s to Platform", pm.ProjectName).Indent()
+	o.Info("Pushing Project %s to Platform", pm.Config.Name).Indent()
+	err = pm.pushLambdas(o)
+	o.Dedent().Done()
+	return
+}
+
+func (pm *ProjectManifest) pushLambdas(o *output.Output) (err error) {
 	o.Info("Pushing Lambdas").Indent()
 	for i, _ := range pm.LambdaManifests {
 		lm := &pm.LambdaManifests[i]
@@ -79,12 +97,11 @@ func (pm *ProjectManifest) PushToPlatform(o *output.Output) (err error) {
 		}
 	}
 	o.Dedent().Done()
-	o.Dedent().Done()
 	return
 }
 
 func (pm *ProjectManifest) DeleteFromPlatform(o *output.Output) (err error) {
-	o.Info("Deleting Project %s", pm.ProjectName).Indent()
+	o.Info("Deleting Project %s", pm.Config.Name).Indent()
 	o.Info("Deleting Lambdas").Indent()
 	for i, _ := range pm.LambdaManifests {
 		lm := &pm.LambdaManifests[i]

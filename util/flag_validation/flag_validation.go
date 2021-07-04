@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"github.com/gbdubs/ecology/manifests/ecology_manifest"
 	"github.com/gbdubs/ecology/manifests/project_manifest"
+	"io/ioutil"
 	"regexp"
 )
 
-const alphanumericRegex = "^[a-zA-Z0-9]*$"
-const alphanumericWithSlashesRegex = "^[a-zA-Z0-9/]*$"
+const alphanumericRegex = "^[a-zA-Z0-9]+$"
+const alphanumericWithSlashesRegex = "^[a-zA-Z0-9/]+$"
 
 // Whether the given platform is currently supported
 var platforms = map[string]bool{"GCP": false, "AWS": true}
@@ -18,9 +19,9 @@ var knownRegions = []string{"us-west-1", "us-west-2", "us-east-1", "us-east-2"}
 
 func ValidateAll(errs ...error) error {
 	nonNilErrs := []error{}
-	for i := range errs {
-		if errs[i] != nil {
-			nonNilErrs = append(nonNilErrs, errs[i])
+	for _, e := range errs {
+		if e != nil {
+			nonNilErrs = append(nonNilErrs, e)
 		}
 	}
 	if len(nonNilErrs) == 0 {
@@ -34,6 +35,9 @@ func ValidateAll(errs ...error) error {
 }
 
 func Platform(platform string) error {
+	if platform == "" {
+		return errors.New("Must set --platform")
+	}
 	_, isEnumeratedPlatform := platforms[platform]
 	if !isEnumeratedPlatform {
 		return errors.New("--platform should be one of AWS or GCP")
@@ -45,6 +49,9 @@ func Platform(platform string) error {
 }
 
 func Region(region string) error {
+	if region == "" {
+		return errors.New("Must set --region")
+	}
 	found := false
 	for _, r := range knownRegions {
 		if r == region {
@@ -58,6 +65,9 @@ func Region(region string) error {
 }
 
 func Project(project string) error {
+	if project == "" {
+		return errors.New("Must set --project")
+	}
 	match, _ := regexp.MatchString(alphanumericRegex, project)
 	if !match {
 		return errors.New("--project can only contain alphanumeric characters")
@@ -65,7 +75,21 @@ func Project(project string) error {
 	return nil
 }
 
+func Path(path string) error {
+	if path == "" {
+		return errors.New("Must set --path")
+	}
+	_, err := ioutil.ReadDir(path)
+	if err == nil {
+		return errors.New("Folder already exists: " + path)
+	}
+	return nil
+}
+
 func ProjectExists(project string, em *ecology_manifest.EcologyManifest) error {
+  if Project(project) != nil {
+    return nil
+  }
 	if !projectExists(project, em) {
 		return errors.New(fmt.Sprintf("--project=%s doesn't exist", project))
 	}
@@ -73,6 +97,9 @@ func ProjectExists(project string, em *ecology_manifest.EcologyManifest) error {
 }
 
 func ProjectDoesNotExist(project string, em *ecology_manifest.EcologyManifest) error {
+  if Project(project) != nil {
+    return nil
+  }
 	if projectExists(project, em) {
 		return errors.New(fmt.Sprintf("--project=%s doesn't exist", project))
 	}
@@ -85,6 +112,9 @@ func projectExists(project string, em *ecology_manifest.EcologyManifest) bool {
 }
 
 func Lambda(lambda string) error {
+	if lambda == "" {
+		return errors.New("Must set --lambda")
+	}
 	match, _ := regexp.MatchString(alphanumericRegex, lambda)
 	if !match {
 		return errors.New("--lambda can only contain alphanumeric characters")
@@ -93,6 +123,9 @@ func Lambda(lambda string) error {
 }
 
 func LambdaExists(lambda string, pm *project_manifest.ProjectManifest) error {
+if     Lambda(lambda) != nil {
+    return nil
+  }
 	if pm == nil {
 		return errors.New("Couldn't find a Project Manifest")
 	}
@@ -103,6 +136,9 @@ func LambdaExists(lambda string, pm *project_manifest.ProjectManifest) error {
 }
 
 func LambdaDoesNotExist(lambda string, pm *project_manifest.ProjectManifest) error {
+  if     Lambda(lambda) != nil {
+    return nil
+  }
 	if pm == nil {
 		return errors.New("Couldn't find a Project Manifest")
 	}
