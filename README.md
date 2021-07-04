@@ -1,5 +1,7 @@
 # Ecology
 
+__This project was superceded by [fns](https://github.com/gbdubs/fns), which is WIP and has not yet reached this feature parity.__
+
 This repository holds utilities for creating and manipulating Cloud Resources within a layer of orchestration. This tool will eventually support a variety of high-level primitives that allow effictive and safe management of Cloud Resources on both GCP and AWS. Primitives I plan on building:
 
 ## Implemented Commands
